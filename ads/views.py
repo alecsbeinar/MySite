@@ -1,10 +1,10 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views import View
 
-from ads.forms import CreateForm
-from ads.models import Ad
+from ads.forms import CreateForm, CommentForm
+from ads.models import Ad, Comment
 from ads.owner import *
 
 
@@ -16,6 +16,14 @@ class AdListView(OwnerListView):
 
 class AdDetailView(OwnerDetailView):
     model = Ad
+    template_name = 'ads/ad_detail.html'
+
+    def get(self, request, pk):
+        ad = get_object_or_404(Ad, id=pk)
+        comments = Comment.objects.filter(ad=ad).order_by('-updated_at')
+        comment_form = CommentForm()
+        context = {'ad': ad, 'comments': comments, 'comment_form': comment_form}
+        return render(request, self.template_name, context)
 
 
 class AdDeleteView(OwnerDeleteView):
@@ -72,3 +80,20 @@ def stream_file(request, pk):
     response['Content-Length'] = len(ad.picture)
     response.write(ad.picture)
     return response
+
+
+class CommentCreateView(LoginRequiredMixin, View):
+    def post(self, request: HttpRequest, pk):
+        ad = get_object_or_404(Ad, id=pk)
+        comment = Comment(text=request.POST['comment'], owner=request.user, ad=ad)
+        comment.save()
+        return redirect(reverse('ads:ad_detail', args=[pk]))
+
+
+class CommentDeleteView(OwnerDeleteView):
+    model = Comment
+    template_name = 'ads/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        ad = self.object.ad
+        return reverse('ads:ad_detail', args=[ad.id])

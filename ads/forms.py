@@ -21,7 +21,7 @@ class CreateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        pic = cleaned_data.get('picture')
+        pic = cleaned_data.get('picture', )
         if pic is None:
             return
         if len(pic) > self.max_upload_limit:
@@ -40,3 +40,7 @@ class CreateForm(forms.ModelForm):
             instance.save()
 
         return instance
+
+
+class CommentForm(forms.Form):
+    comment = forms.CharField(required=True, max_length=500, min_length=3, strip=True)
