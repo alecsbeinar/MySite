@@ -13,5 +13,8 @@ class Ad(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    picture = models.BinaryField(null=True, blank=True, editable=True)
+    content_type = models.CharField(max_length=256, null=True, blank=True, help_text='The Mime-Type of the file')
+
     def __str__(self):
         return self.title
