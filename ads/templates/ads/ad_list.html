@@ -13,6 +13,34 @@
                             <a href="{% url 'ads:ad_delete' ad.id %}">Delete</a>
                             )
                         {% endif %}
+
+                        {% if user.is_authenticated %}
+                            <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
+                            <a href="#" id="favorite_star_{{ ad.id }}"
+                               onclick="favPost('{% url 'ads:ad_unfavorite' ad.id %}', {{ ad.id }});return false;"
+                                    {% if ad.id not in favs_id %}
+                               style="display: none;"
+                                    {% endif %}
+                            >
+                                <span class="fa-stack" style="vertical-align: middle;">
+                                    <i class="fa fa-star fa-stack-1x" style="color: orange;"></i>
+                                    <i class="fa fa-star-o fa-stack-1x"></i>
+                                </span>
+                            </a>
+
+                            <!-- the second href -->
+                            <a href="#" id="unfavorite_star_{{ ad.id }}"
+                               onclick="favPost('{% url 'ads:ad_favorite' ad.id %}', {{ ad.id }});return false;"
+                                    {% if ad.id in favs_id %}
+                               style="display: none;"
+                                    {% endif %}
+                            >
+                                <span class="fa-stack" style="vertical-align: middle;">
+                                    <i class="fa fa-star fa-stack-1x" style="display: none; color: orange;"></i>
+                                    <i class="fa fa-star-o fa-stack-1x"></i>
+                                </span>
+                            </a>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>
@@ -27,4 +55,36 @@
             <a href="{% url 'login' %}?next={% url 'ads:all' %}">Login</a>
         {% endif %}
     </p>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function toggleInlineDisplay(star_id) {
+            var elem = document.getElementById(star_id);
+            if(window.getComputedStyle(elem).display === "inline") {
+                elem.style.display = 'none';
+                elem.dataset.previousDisplay = 'inline';
+            } else if(window.getComputedStyle(elem).display === "block") {
+                elem.style.display = 'none';
+                elem.dataset.previousDisplay = 'block';
+            } else {
+                if(typeof elem.dataset.previousDisplay == "string") {
+                    elem.style.display = elem.dataset.previousDisplay;
+                } else {
+                    elem.style.display = 'inline';
+                }
+            }
+        }
+
+        function favPost(url, ad_id) {
+            fetch(url, {method: "POST", body: "{}"})
+                .then((response) => {
+                    toggleInlineDisplay("unfavorite_star_"+ad_id);
+                    toggleInlineDisplay("favorite_star_"+ad_id);
+                })
+                .catch((error) => {
+                    alert('Url failed with ' + error + " Url: " + url)
+                })
+        }
+    </script>
 {% endblock %}

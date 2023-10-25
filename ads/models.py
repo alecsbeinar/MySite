@@ -20,6 +20,9 @@ class Ad(models.Model):
     comments = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                       through='Comment', related_name='comments_owned')
 
+    favorites = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                       through='Favorite', related_name='favorite_ads')
+
     def __str__(self):
         return self.title
 
@@ -36,3 +39,14 @@ class Comment(models.Model):
             return self.text
         else:
             return self.text[:11] + ' ...'
+
+
+class Favorite(models.Model):
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('ad', 'user')
+
+    def __str__(self):
+        return f"{self.user.name} likes {self.ad.title[:10]}"
