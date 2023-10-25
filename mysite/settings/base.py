@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'autos.apps.AutosConfig',
     'ads.apps.AdsConfig',
+    'chat.apps.ChatConfig',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

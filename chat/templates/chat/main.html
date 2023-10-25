@@ -1,0 +1,54 @@
+{% extends 'base_bootstrap.html' %}
+{% block content %}
+    <h1>Chat</h1>
+    <p>
+    <form action="" method="post">
+        {% csrf_token %}
+        <input name="message" type="text" size="60"/>
+        <input type="submit" value="Post"/>
+    </form>
+
+    <div id="chatcontent">
+        <img src="{% url 'chat:static' 'spinner.gif' %}" alt="Loading..."/>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        async function updateMsg() {
+            var url = '{% url 'chat:messages' %}';
+
+            const request = fetch(url, {cache: "no-store"}).catch((error) => {
+                return 'Could not start fetch\nUrl: ' + url + '\n' + error;
+            })
+            const response = await request;
+
+            if (typeof response == 'string') {
+                alert(response);
+                return response;
+            }
+            if (!response.ok) {
+                const txt = 'Fetch Failed\nURL:' + url + '\nStatus:' + response.status + ' ' + response.statusText;
+                alert(txt);
+                return txt;
+            }
+
+            const data = await response.json().catch((error) => {
+                return error.toString();
+            });
+
+            document.getElementById("chatcontent").innerHTML = "";
+            for (let i = 0; i < data.length; i++) {
+                let row_data = data[i];
+                document.getElementById("chatcontent").innerHTML +=
+                    '<p>' + row_data[0] + '<br/>&nbsp;&nbsp;' + row_data[1] + "</p>\n";
+            }
+
+            setTimeout('updateMsg()', 6000);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout('updateMsg()', 2000);
+        })
+    </script>
+{% endblock %}

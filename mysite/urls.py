@@ -10,6 +10,7 @@ urlpatterns = [
     path('polls/', include('polls.urls')),
     path('autos/', include('autos.urls')),
     path('ads/', include('ads.urls')),
+    path('chat/', include('chat.urls')),
 
     path('accounts/', include('django.contrib.auth.urls')),
     re_path(r'^oauth/', include('social_django.urls', namespace='social')),

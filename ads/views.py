@@ -22,7 +22,6 @@ class AdListView(OwnerListView):
             favs_id = [fav.ad.id for fav in favs]
 
         ad_list = Ad.objects.all()
-        print(favs_id)
         context = {"ad_list": ad_list, "favs_id": favs_id}
         return render(request, self.template_name, context)
 
