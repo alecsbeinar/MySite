@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django.conf import settings
+from taggit.managers import TaggableManager
 
 
 class Ad(models.Model):
@@ -22,6 +23,8 @@ class Ad(models.Model):
 
     favorites = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        through='Favorite', related_name='favorite_ads')
+
+    tags = TaggableManager(blank=True)
 
     def __str__(self):
         return self.title

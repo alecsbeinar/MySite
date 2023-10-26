@@ -1,3 +1,5 @@
+from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -15,14 +17,29 @@ class AdListView(OwnerListView):
     model = Ad
     template_name = "ads/ad_list.html"
 
-    def get(self, request):
+    def get(self, request: HttpRequest):
         favs_id = []
         if request.user.is_authenticated:
             favs = Favorite.objects.filter(user=request.user)
             favs_id = [fav.ad.id for fav in favs]
 
-        ad_list = Ad.objects.all()
-        context = {"ad_list": ad_list, "favs_id": favs_id}
+        search = self.request.GET.get("search", False)
+        if search:
+            query = Q(title__icontains=search)
+            query.add(Q(text__icontains=search), Q.OR)
+            query.add(Q(tags__name__in=[search]), Q.OR)
+            ad_list = Ad.objects.filter(query).select_related().order_by('-updated_at')[:10]
+        else:
+            ad_list = Ad.objects.all().order_by("-updated_at")[:10]
+
+        for ad in ad_list:
+            ad.natural_updated = naturaltime(ad.updated_at)
+
+        context = {
+            "ad_list": ad_list,
+            "favs_id": favs_id,
+            "search": search
+        }
         return render(request, self.template_name, context)
 
 
@@ -38,8 +55,8 @@ class AdDetailView(OwnerDetailView):
         return render(request, self.template_name, context)
 
 
-class AdDeleteView(OwnerDeleteView):
-    model = Ad
+# class AdDeleteView(OwnerDeleteView):
+#     model = Ad
 
 
 class AdCreateView(LoginRequiredMixin, View):
@@ -60,6 +77,7 @@ class AdCreateView(LoginRequiredMixin, View):
         ad = form.save(commit=False)
         ad.owner = self.request.user
         ad.save()
+        form.save_m2m()
         return redirect(self.success_url)
 
 
@@ -84,6 +102,7 @@ class AdUpdateView(LoginRequiredMixin, View):
         ad = form.save(commit=False)
         ad.save()
         return redirect(self.success_url)
+
 
 def stream_file(request, pk):
     ad = get_object_or_404(Ad, id=pk)
@@ -117,7 +136,7 @@ class AddFavoriteView(LoginRequiredMixin, View):
         ad = get_object_or_404(Ad, id=pk)
         fav = Favorite(user=request.user, ad=ad)
         try:
-            fav.save() # In case of duplicate key
+            fav.save()  # In case of duplicate key
         except IntegrityError as e:
             pass
         return HttpResponse()

@@ -1,6 +1,18 @@
 {% extends 'base_menu.html' %}
 {% block content %}
     <h1>Ads</h1>
+
+    <!-- Search box -->
+    <div style="float:right">
+        <form>
+            <input type="text" placeholder="Search" name="search"
+                   {% if search %}value="{{ search }}"{% endif %}
+            >
+            <button type="submit"><i class="fa fa-search"></i></button>
+            <a href="{% url 'ads:all' %}"><i class="fa fa-undo"></i></a>
+        </form>
+    </div>
+
     <p>
         {% if ad_list %}
             <ul>
@@ -41,11 +53,31 @@
                                 </span>
                             </a>
                         {% endif %}
+
+                        <div style="left:10px">
+                            {% if ad.text|length < 100 %}
+                                {{ ad.text }}
+                            {% else %}
+                                {{ ad.text|slice:"0:99" }}
+                                <a href="{% url 'ads:ad_detail'  ad.id %}">...</a>
+                            {% endif %}
+                        </div>
+                        <small>
+                            {% if ad.owner.name %}
+                                posted by {{ ad.owner.name }}
+                            {% endif %}
+                            {{ ad.natural_updated }}
+                        </small>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>There are no ads in the database.</p>
+            {% if search %}
+                <p>There are no ads that match your search criteria.</p>
+            {% else %}
+                <p>There are no ads in the database.</p>
+            {% endif %}
+
         {% endif %}
     <p>
         <a href="{% url 'ads:ad_create' %}">Add an Ad</a> |
@@ -61,14 +93,14 @@
     <script>
         function toggleInlineDisplay(star_id) {
             var elem = document.getElementById(star_id);
-            if(window.getComputedStyle(elem).display === "inline") {
+            if (window.getComputedStyle(elem).display === "inline") {
                 elem.style.display = 'none';
                 elem.dataset.previousDisplay = 'inline';
-            } else if(window.getComputedStyle(elem).display === "block") {
+            } else if (window.getComputedStyle(elem).display === "block") {
                 elem.style.display = 'none';
                 elem.dataset.previousDisplay = 'block';
             } else {
-                if(typeof elem.dataset.previousDisplay == "string") {
+                if (typeof elem.dataset.previousDisplay == "string") {
                     elem.style.display = elem.dataset.previousDisplay;
                 } else {
                     elem.style.display = 'inline';
@@ -79,8 +111,8 @@
         function favPost(url, ad_id) {
             fetch(url, {method: "POST", body: "{}"})
                 .then((response) => {
-                    toggleInlineDisplay("unfavorite_star_"+ad_id);
-                    toggleInlineDisplay("favorite_star_"+ad_id);
+                    toggleInlineDisplay("unfavorite_star_" + ad_id);
+                    toggleInlineDisplay("favorite_star_" + ad_id);
                 })
                 .catch((error) => {
                     alert('Url failed with ' + error + " Url: " + url)

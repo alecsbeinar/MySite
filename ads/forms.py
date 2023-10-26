@@ -17,7 +17,7 @@ class CreateForm(forms.ModelForm):
 
     class Meta:
         model = Ad
-        fields = ['title', 'price', 'text', 'picture']
+        fields = ['title', 'price', 'text', 'tags', 'picture']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -28,7 +28,6 @@ class CreateForm(forms.ModelForm):
             self.add_error('picture', "File must be < " + self.max_upload_limit_text + " bytes")
 
     def save(self, commit=True):
-        # TODO: check super()
         instance = super(CreateForm, self).save(commit=False)
         f = instance.picture
         if isinstance(f, InMemoryUploadedFile):
@@ -38,6 +37,7 @@ class CreateForm(forms.ModelForm):
 
         if commit:
             instance.save()
+            self.save_m2m()
 
         return instance
 
