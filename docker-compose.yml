@@ -1,0 +1,44 @@
+version: '3.8'
+volumes:
+  mysite:
+  mysql_data:
+
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+    depends_on:
+      - web
+      - db
+    restart: "on-failure"
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py makemigrations --settings=mysite.settings.dev && python manage.py migrate --settings=mysite.settings.dev &&
+              python manage.py shell --settings=mysite.settings.dev -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', '123qwe')\" &&
+              DJANGO_SETTINGS_MODULE=mysite.settings.dev gunicorn mysite.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - mysite:/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ads
+      MYSQL_USER: alecs
+      MYSQL_PASSWORD: phone_9008870
+      MYSQL_ROOT_PASSWORD: example
+

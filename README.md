@@ -17,10 +17,15 @@ Run the following commands to bootstrap your environment:
     source venv/bin/activate
     pip3 install -r requirements/prod.txt 
 
+    mysql> CREATE DATABASE ads;
+        create user 'user'@'localhost' IDENTIFIED BY 'your-password';
+        GRANT ALL PRIVILEGES ON * . * TO 'user'@'localhost';
+        FLUSH PRIVILEGES;
+
     cp .env.template .env
-    while read file; do
-       export "$file"
-       done < .env
+    Set all variables and export them
+
+    python manage.py migrate --settings=mysite.settings.prod
 
 Run the app locally:
 
@@ -29,6 +34,10 @@ Run the app locally:
 Run the app with gunicorn:
 
     gunicorn mysite.wsgi -b 0.0.0.0:8000
+
+## Docker
+
+docker-compose up
 
 ### MySite usage:
 
